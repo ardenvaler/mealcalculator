@@ -64,18 +64,37 @@
 
   /* ---------------- scroll reveal ---------------- */
 
+  /* Content is always visible at rest; this only adds an entrance animation
+     as an element scrolls in, so nothing ever waits on the observer. */
   var revealObserver = null;
   function reveal(scope) {
     var els = Mise.ui.$$("[data-reveal]:not(.is-in)", scope);
-    if (reduced() || !("IntersectionObserver" in root)) { els.forEach(function (el) { el.classList.add("is-in"); }); return; }
+    if (reduced() || !("IntersectionObserver" in root) || !doc.documentElement.animate) {
+      els.forEach(function (el) { el.classList.add("is-in"); });
+      return;
+    }
     if (!revealObserver) {
       revealObserver = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) { e.target.classList.add("is-in"); revealObserver.unobserve(e.target); }
+          if (!e.isIntersecting) return;
+          var el = e.target;
+          revealObserver.unobserve(el);
+          el.classList.add("is-in");
+          if (getComputedStyle(el).position === "fixed") return;
+          var d = parseFloat(getComputedStyle(el).getPropertyValue("--d")) || 0;
+          el.animate([
+            { opacity: 0, transform: "translateY(28px)", filter: "blur(6px)" },
+            { opacity: 1, transform: "none", filter: "blur(0px)" }
+          ], { duration: 950, delay: d, easing: "cubic-bezier(.16,1,.3,1)", fill: "backwards" });
         });
-      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+      }, { rootMargin: "0px 0px 12% 0px", threshold: 0 });
     }
-    els.forEach(function (el) { revealObserver.observe(el); });
+    els.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      var onScreen = r.top < root.innerHeight && r.bottom > 0;
+      if (onScreen || getComputedStyle(el).position === "fixed") { el.classList.add("is-in"); return; }
+      revealObserver.observe(el);
+    });
   }
 
   /* ---------------- spotlight & tilt ---------------- */

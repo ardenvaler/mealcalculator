@@ -305,13 +305,16 @@
 
     // greet shortly after load
     setTimeout(function () {
-      var hasItems = S.get().meal.items.length > 0;
+      var meal = S.get().meal;
+      var hasItems = meal.items.length > 0;
       say({
         kind: "greet", tag: "Hello", mood: "happy",
         title: "Hi, I'm Sage 🌿",
-        text: hasItems
-          ? "Welcome back — your plate is right where you left it. I'll pop in with tips now and then; each one comes with a menu you can calculate in one tap."
-          : "I'll drop healthy-eating tips here every so often — tap one to load its menu and see the numbers. Or start adding ingredients from the library.",
+        text: meal.example
+          ? "I've put an example on your plate: 100 g chicken breast, a tablespoon of extra-virgin olive oil and 150 g spinach. Change any amount or type and watch the numbers move, or tap a tip to load its menu."
+          : hasItems
+            ? "Welcome back — your plate is right where you left it. I'll pop in with tips now and then; each one comes with a menu you can calculate in one tap."
+            : "I'll drop healthy-eating tips here every so often — tap one to load its menu and see the numbers. Or start adding ingredients from the library.",
         actions: [
           { label: "Show me a tip", icon: "sparkle", primary: true, run: function () { say(tipMessage(nextTip())); } },
           { label: "Browse all tips", icon: "arrowRight", run: function () { Mise.app.scrollTo("tips"); close(false); } }

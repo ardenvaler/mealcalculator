@@ -145,14 +145,17 @@
     if (!m.items.length) { fx.toast("Your plate is empty — nothing to share yet", { icon: "info" }); return; }
     var url = S.shareURL();
     var copied = function () { fx.toast("Link copied — anyone with it sees this plate", { icon: "link" }); };
+    var copy = function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(copied, function () { fallbackCopy(url) ? copied() : fx.toast(url); });
+      } else if (fallbackCopy(url)) copied();
+      else fx.toast(url);
+    };
     if (navigator.share && root.matchMedia("(pointer: coarse)").matches) {
-      navigator.share({ title: m.name + " · Mise", url: url }).catch(function () {});
+      navigator.share({ title: m.name + " · Mise", url: url }).catch(function (err) { if (!err || err.name !== "AbortError") copy(); });
       return;
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(copied, function () { fallbackCopy(url) ? copied() : fx.toast(url); });
-    } else if (fallbackCopy(url)) copied();
-    else fx.toast(url);
+    copy();
   }
 
   function fallbackCopy(text) {

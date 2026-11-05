@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,11 +13,12 @@
   <script>
     /* set the theme before first paint (saved choice, else the system setting) */
     (function () {
-      var t = null;
+      var d = document.documentElement, t = null;
       try { t = localStorage.getItem("mise:theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark") t = d.getAttribute("data-theme");
       if (t !== "light" && t !== "dark") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", t);
-      document.documentElement.style.colorScheme = t;
+      d.setAttribute("data-theme", t);
+      d.style.colorScheme = t;
     })();
   </script>
   <link rel="stylesheet" href="assets/css/styles.css">

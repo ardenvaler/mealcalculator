@@ -13,6 +13,12 @@
 
   function blankMeal() { return { name: "My plate", servings: 1, items: [] }; }
 
+  /* What a first-time visitor sees: a labelled example, not an empty shell. */
+  var EXAMPLE = {
+    name: "Example · Chicken, olive oil & spinach", servings: 1,
+    items: [["chicken-breast-skinless-raw", 100, "g"], ["olive-oil-extra-virgin", 1, "tbsp"], ["spinach-raw", 150, "g"], ["garlic-raw", 2, "clove"], ["salt-table", 0.25, "tsp"]]
+  };
+
   var state = {
     meal: blankMeal(),
     view: "serving",     // "serving" | "meal"
@@ -44,13 +50,14 @@
   function load() {
     try {
       var raw = root.localStorage && root.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) return false;
       var s = JSON.parse(raw);
       if (s.meal) {
         state.meal = {
           name: typeof s.meal.name === "string" ? s.meal.name.slice(0, 80) : "My plate",
           servings: clampServings(s.meal.servings),
-          items: sanitizeItems(s.meal.items)
+          items: sanitizeItems(s.meal.items),
+          example: !!s.meal.example
         };
       }
       if (s.view === "meal" || s.view === "serving") state.view = s.view;
@@ -60,7 +67,8 @@
       if (Array.isArray(s.saved)) {
         state.saved = s.saved.filter(function (m) { return m && typeof m.name === "string" && Array.isArray(m.items); }).slice(0, 200);
       }
-    } catch (e) { /* storage unavailable or corrupt — start fresh */ }
+      return true;
+    } catch (e) { return false; /* storage unavailable or corrupt — start fresh */ }
   }
 
   var saveTimer = null;
@@ -69,7 +77,7 @@
     saveTimer = setTimeout(function () {
       try {
         root.localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          meal: { name: state.meal.name, servings: state.meal.servings, items: state.meal.items.map(pack) },
+          meal: { name: state.meal.name, servings: state.meal.servings, items: state.meal.items.map(pack), example: !!state.meal.example },
           view: state.view, goal: state.goal, sageAuto: state.sageAuto, saved: state.saved, recent: state.recent
         }));
       } catch (e) { /* private mode etc. */ }
@@ -84,6 +92,8 @@
   var subs = [];
   function subscribe(fn) { subs.push(fn); return function () { subs = subs.filter(function (f) { return f !== fn; }); }; }
   function emit(change) {
+    var t = change && change.type;
+    if (t === "add" || t === "update" || t === "remove" || t === "meta") state.meal.example = false;
     for (var i = 0; i < subs.length; i++) {
       try { subs[i](state, change || {}); } catch (e) { if (root.console) console.error(e); }
     }
@@ -241,7 +251,9 @@
     return out.items.length ? out : null;
   }
 
-  load();
+  if (!load()) {
+    state.meal = { name: EXAMPLE.name, servings: EXAMPLE.servings, items: sanitizeItems(EXAMPLE.items), example: true };
+  }
 
   Mise.store = {
     get: function () { return state; },

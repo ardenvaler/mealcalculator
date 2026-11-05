@@ -227,23 +227,42 @@
     return hay.indexOf(token) === 0 || hay.indexOf(" " + token) !== -1;
   }
 
+  /** plural-insensitive variants of a search token: "tomatoes" → tomatoes, tomatoe, tomato */
+  function variantsOf(t) {
+    var v = [t];
+    if (t.length > 4 && /ies$/.test(t)) v.push(t.slice(0, -3) + "y");
+    if (t.length > 3 && /es$/.test(t)) v.push(t.slice(0, -2));
+    if (t.length > 3 && /s$/.test(t) && !/ss$/.test(t)) v.push(t.slice(0, -1));
+    return v;
+  }
+
+  function wholeWord(hay, token) {
+    return (" " + hay + " ").indexOf(" " + token + " ") !== -1;
+  }
+
+  /* Ties are broken by the library's curated order (most common foods first). */
+  function tokenScore(f, t) {
+    if (wholeWord(f._name, t)) return 12;
+    if (wordStart(f._name, t)) return 9;
+    if (f._aka.some(function (a) { return wordStart(a, t); })) return 8;
+    if (wordStart(f._type, t)) return 5;
+    if (wordStart(f._hay, t)) return 3;
+    if (t.length >= 3 && f._hay.indexOf(t) !== -1) return 1;
+    return -1;
+  }
+
   function scoreFood(f, tokens) {
     var score = 0;
     for (var i = 0; i < tokens.length; i++) {
-      var t = tokens[i];
-      var s = 0;
-      if (f._name.indexOf(t) === 0) s = 12;
-      else if (wordStart(f._name, t)) s = 9;
-      else if (f._aka.some(function (a) { return wordStart(a, t); })) s = 8;
-      else if (wordStart(f._type, t)) s = 5;
-      else if (wordStart(f._hay, t)) s = 3;
-      else if (t.length >= 3 && f._hay.indexOf(t) !== -1) s = 1;
-      else return -1;
+      var vs = variantsOf(tokens[i]), s = -1;
+      for (var j = 0; j < vs.length; j++) s = Math.max(s, tokenScore(f, vs[j]) - (j ? 0.5 : 0));
+      if (s < 0) return -1;
       score += s;
     }
-    if (f._name === tokens.join(" ")) score += 20;
-    if (f._aka.indexOf(tokens.join(" ")) !== -1) score += 14;
-    return score - f.name.length / 40;
+    var whole = variantsOf(tokens.join(" "));
+    if (whole.indexOf(f._name) !== -1) score += 20;
+    else if (f._aka.some(function (a) { return whole.indexOf(a) !== -1; })) score += 14;
+    return score;
   }
 
   function editDistanceWithin(a, b, max) {
@@ -264,16 +283,21 @@
   }
 
   function fuzzyFood(f, tokens) {
+    var nameWords = f._name.split(" ");
     var words = f._hay.split(" ");
     var score = 0;
     for (var i = 0; i < tokens.length; i++) {
       var t = tokens[i];
-      var max = t.length <= 4 ? 1 : 2;
-      var hit = words.some(function (w) {
-        return editDistanceWithin(t, w, max) || (w.length > t.length && editDistanceWithin(t, w.slice(0, t.length), max - (t.length <= 4 ? 0 : 1)));
-      });
-      if (!hit) return -1;
-      score += 1;
+      if (t.length < 3) return -1;
+      var max = t.length >= 8 ? 2 : 1;
+      var near = function (w) {
+        if (editDistanceWithin(t, w, max)) return true;
+        // typo inside a longer word's start ("chiken" → "chicken…"), only for longer tokens
+        return t.length >= 5 && w.length > t.length && editDistanceWithin(t, w.slice(0, t.length + 1), 1);
+      };
+      if (nameWords.some(near)) score += 3;
+      else if (words.some(near)) score += 1;
+      else return -1;
     }
     return score;
   }

@@ -85,7 +85,7 @@ for (const it of DB.foods) {
   if (typeof it.type === "string" && it.type.length > 48) warn(`type longer than 48 chars (${it.type.length})`);
   if (g && typeof it.sub === "string" && !g.subs.includes(it.sub)) err(`sub ${JSON.stringify(it.sub)} not in group "${g.key}" (${g.subs.join(", ")})`);
 
-  const allowed = new Set(["id", "name", "type", "sub", "emoji", "n", "density", "units", "def", "aka", "group", "note"]);
+  const allowed = new Set(["id", "name", "type", "sub", "emoji", "n", "density", "units", "def", "aka", "group", "note", "kcalOk"]);
   for (const k of Object.keys(it)) if (!allowed.has(k)) err(`unknown field "${k}"`);
 
   // nutrients ------------------------------------------------------------
@@ -110,7 +110,8 @@ for (const it of DB.foods) {
       const atwFib = 4 * n.protein + 4 * (n.carbs - n.fiber) + 2 * n.fiber + 9 * n.fat + 7 * alc;
       const lo = Math.min(atw, atwFib) * 0.8 - 12;
       const hi = Math.max(atw, atwFib) * 1.2 + 12;
-      if (n.kcal < lo || n.kcal > hi) warn(`kcal ${n.kcal} inconsistent with macros (expected ≈ ${Math.round(atwFib)}–${Math.round(atw)})`);
+      if (it.kcalOk !== undefined && typeof it.kcalOk !== "boolean") err("kcalOk must be true or false");
+      if (!it.kcalOk && (n.kcal < lo || n.kcal > hi)) warn(`kcal ${n.kcal} inconsistent with macros (expected ≈ ${Math.round(atwFib)}–${Math.round(atw)})`);
     }
   }
 

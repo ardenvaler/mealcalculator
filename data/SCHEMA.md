@@ -33,6 +33,7 @@ A file may call `MiseDB.add` several times (once per group it covers).
 | `units`   | no  | Household portions → grams: `{ "large": 50, "slice": 28, "clove": 3 }`. Labels are lowercase, singular, ≤ 24 chars and must not be a standard unit name. |
 | `def`     | no  | Default amount when added to a plate: `[qty, unit]`, unit is a standard unit or a key of `units`. Omit for the group default (see below). |
 | `note`    | no  | Free-text note for maintainers (not shown in the app). |
+| `kcalOk`  | no  | `true` when `kcal` legitimately disagrees with 4·P + 4·C + 9·F (sugar alcohols, cocoa with its own energy factors, vinegar…). Silences that validator warning — explain why in `note`. |
 
 ### Nutrient keys (`n`)
 

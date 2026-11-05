@@ -12,7 +12,7 @@ accounts, no build step.
 
 ## Features
 
-- **Ingredient library** — 900+ foods in 12 groups (protein, vegetables,
+- **Ingredient library** — 1,400+ foods (780+ families) in 12 groups (protein, vegetables,
   grains & starches, legumes, fruit, dairy & alternatives, oils & fats, nuts &
   seeds, herbs & spices, sauces, sweeteners & baking, drinks), each family with
   its types. Search understands Indonesian names (*kangkung, tempe, dada ayam,
@@ -84,7 +84,11 @@ Never rename an existing `id` — saved meals and share links depend on it.
 
 ## Data sources & disclaimer
 
-Values are per 100 g estimates based on USDA FoodData Central (SR Legacy /
-Foundation Foods), the Indonesian Food Composition Table (TKPI) and similar
-references. Real foods vary with brand, ripeness and cooking. Mise is for
-general information and is not medical advice.
+Values are per 100 g of the edible portion. Most items come straight from
+**USDA FoodData Central — SR Legacy** (the food number is in each item's
+`note`). Foods USDA doesn't cover use the **Indonesian Food Composition Table
+(TKPI)**, Japan's **Standard Tables of Food Composition**, India's **IFCT** or
+median retail labels; anything estimated says so in its `note`.
+
+Real foods vary with brand, variety, ripeness and cooking, so treat the numbers
+as good estimates. Mise is for general information and is not medical advice.

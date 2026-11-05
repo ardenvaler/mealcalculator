@@ -44,7 +44,7 @@
       h("div", { class: "tip-glow", "aria-hidden": "true" }),
       h("div", { class: "tip-top" },
         h("span", { class: "tip-cat" }, ui.icon(cat.icon), cat.label),
-        h("span", { class: "tip-emojis", "aria-hidden": "true" }, menuEmojis(tip, 4).join(" "))
+        h("span", { class: "tip-emojis", "aria-hidden": "true" }, menuEmojis(tip, 3).join(" "))
       ),
       h("h3", { class: "tip-title" }, tip.title),
       h("p", { class: "tip-body" }, tip.body),
@@ -118,6 +118,8 @@
       filter = b.dataset.cat;
       renderFilters();
       renderRail();
+      var on = el.filters.querySelector(".chip.is-on");
+      if (on && on.scrollIntoView) on.scrollIntoView({ block: "nearest", inline: "center", behavior: fx.reduced() ? "auto" : "smooth" });
     });
     el.rail.addEventListener("click", function (e) {
       var c = e.target.closest(".tip-card");
